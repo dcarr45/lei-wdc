@@ -18,7 +18,7 @@
 			dataType: tableau.dataTypeEnum.string
 		}, {
 			id: "status",
-			alias: "Entity Status",
+			alias: "Registration Status",
 			dataType: tableau.dataTypeEnum.string
 		}, {
 			id: "renewal",
@@ -67,7 +67,7 @@
 						tableData.push({
 							"lei": resp[i].LEI["$"],
 							"name": resp[i].Entity.LegalName["$"],
-							"status": resp[i].Entity.EntityStatus["$"],
+							"status": resp[i].Registration.RegistrationStatus["$"],
 							"renewal": resp[i].Registration.NextRenewalDate["$"]
 						});
 					}
