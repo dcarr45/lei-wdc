@@ -38,48 +38,64 @@
 
 	connector.getData = function (table, doneCallback) {
 		tableau.log("Fetching LEI data");
-		var leis = ["5493008DK1WDY4NF3776", "549300F6VHCLKCUWDT34"],
-			batches = [],
-			i = 0
-			batchSize = 1;
 
-		while (i < leis.length) {
-			batches.push(leis.slice(i, i += batchSize));
-		}
+		var processLEIs = function(values) {
+			var leis = [],
+				batches = [],
+				i = 0
+				batchSize = 200;
 
-		var reqs = 0,
-			numBatches = batches.length;
-
-		var makeRequest = function(batch, index) {
-			tableau.log("Running batch " + index);
-			var url = "https://leilookup.gleif.org/api/v2/leirecords?lei=" + batch.join(",");
-			$.getJSON(url, function(resp) {
-				var tableData = [];
-				for (var i = 0; i < resp.length; i++) {
-					tableData.push({
-						"lei": resp[i].LEI["$"],
-						"name": resp[i].Entity.LegalName["$"],
-						"status": resp[i].Entity.EntityStatus["$"],
-						"renewal": resp[i].Registration.NextRenewalDate["$"]
-					});
-				}
-				table.appendRows(tableData);
-				tableau.log("Done with batch " + index);
-			}).fail(function(jqxhr, status, err) {
-				var error = textStatus + ", " + err;
-				tableau.log( "Failed to retrieve batch " + index + ": " + error);
-			}).always(function() {
-				reqs++;
-				if (reqs == numBatches) {
-					tableau.log("All requests complete!")
-					doneCallback();
-				}
+			values.forEach(function(lei, idx) {
+				leis.push(lei);
 			});
+
+			tableau.log("Read " + leis.length + " LEIs from file");
+
+			while (i < leis.length) {
+				batches.push(leis.slice(i, i += batchSize));
+			}
+
+			var reqs = 0,
+				numBatches = batches.length;
+
+			var makeRequest = function(batch, index) {
+				tableau.log("Running batch " + index);
+				var url = "https://leilookup.gleif.org/api/v2/leirecords?lei=" + batch.join(",");
+				$.getJSON(url, function(resp) {
+					var tableData = [];
+					for (var i = 0; i < resp.length; i++) {
+						tableData.push({
+							"lei": resp[i].LEI["$"],
+							"name": resp[i].Entity.LegalName["$"],
+							"status": resp[i].Entity.EntityStatus["$"],
+							"renewal": resp[i].Registration.NextRenewalDate["$"]
+						});
+					}
+					table.appendRows(tableData);
+					tableau.log("Done with batch " + index);
+				}).fail(function(jqxhr, status, err) {
+					var error = textStatus + ", " + err;
+					tableau.log( "Failed to retrieve batch " + index + ": " + error);
+				}).always(function() {
+					reqs++;
+					if (reqs == numBatches) {
+						tableau.log("All requests complete!")
+						doneCallback();
+					}
+				});
+			}
+			
+			if (batches.length > 0) {
+				batches.forEach(function(leiBatch, idx) {
+					makeRequest(leiBatch, idx);
+				});
+			} else {
+				doneCallback();
+			}
 		}
-		
-		batches.forEach(function(leiBatch, idx) {
-			makeRequest(leiBatch, idx);
-		});
+
+		$.getJSON("resources/leis.json").done(processLEIs);
+
 	};
 
 
