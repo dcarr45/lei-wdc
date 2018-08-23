@@ -7,7 +7,7 @@
     }
 
     connector.getSchema = function (schemaCallback) {
-    	tableau.log("Hello WDC!");
+    	console.log("Hello WDC!");
 	    var cols = [{
 	        id: "lei",
 	        alias: "LEI",
@@ -32,12 +32,12 @@
 	        columns: cols
 	    };
 
-	    tableau.log("Calling schemaCallback");
+	    console.log("Calling schemaCallback");
 	    schemaCallback([tableSchema]);
     };
 
     connector.getData = function (table, doneCallback) {
-    	tableau.log("Fetching LEI data");
+    	console.log("Fetching LEI data");
     	var leis = ["5493008DK1WDY4NF3776", "549300F6VHCLKCUWDT34"],
     		batches = [],
     		i = 0
@@ -53,7 +53,7 @@
 	    	var promise = new Promise(function(resolve, reject) {
 	    		var url = "https://leilookup.gleif.org/api/v2/leirecords?lei=" + batch.join(",");
 		    	$.getJSON(url, function(resp) {
-		    		tableau.log("Got response");
+		    		console.log("Got response");
 					var tableData = [];
 					for (var i = 0; i < resp.length; i++) {
 						tableData.push({
@@ -64,7 +64,7 @@
 						});
 					}
 					table.appendRows(tableData);
-					tableau.log("Done with batch");
+					console.log("Done with batch");
 					resolve();
 				});
 			});
